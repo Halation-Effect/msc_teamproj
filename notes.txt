@@ -1,0 +1,7 @@
+1. manual debug shit
+---------------------------------------
+enable dataset debug in code
+count how many entries are hot/not hot
+
+python main.py | tail/head -n 500 | awk '{print $5}' | grep 1 | wc -l
+---------------------------------------
