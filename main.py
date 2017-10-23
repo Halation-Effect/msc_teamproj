@@ -14,13 +14,18 @@ pd.set_option('display.max_rows', None, 'display.max_columns', None)
 
 #dataset = pd.read_csv("a.csv", header = None)
 dataset = pd.read_csv("mote_9.csv")
-dataset.columns = ['temp', 'humid', 'light']
+dataset.columns = ['date', 'time', 'temp', 'humid', 'light']
+
+"""
+plt.subplot(111)
+plt.subplots_adjust(bottom = 0.2, top = 0.9)
+plt.plot_date(x = dataset.date, y = dataset.temp, fmt = 'r-')
+plt.xticks(rotation = 90)
 
 plt.scatter(dataset.temp, dataset.humid, s = 5, c = ['red', 'green'])
 plt.xlabel("temp")
 plt.ylabel("humid")
 
-"""
 plt.subplot(2, 1, 1)
 dataset.temp.hist()
 plt.xlabel("temperature")
@@ -30,8 +35,12 @@ plt.subplot(2, 1, 2)
 dataset.light.hist()
 plt.xlabel("lux")
 plt.ylabel("frequency")
+
+plt.show()
 """
 
+dataset.drop(['date'], axis = 1, inplace = True)
+dataset.drop(['time'], axis = 1, inplace = True)
 dataset['hot'] = ((dataset.temp > 20) & (dataset.humid < 38) & (dataset.light > 400)).astype(int)
 #print dataset
 
@@ -44,7 +53,7 @@ y = np.ravel(y) # 1D array
 #x = dataset.ix[:, (0, 1, 2)].values
 #y = dataset.ix[:, 3].values
 
-x_train, x_test, y_train, y_test = train_test_split(x, y, train_size = 0.3, test_size = 0.5, random_state = 0)
+x_train, x_test, y_train, y_test = train_test_split(x, y, train_size = 0.7, test_size = 0.3, random_state = 0)
 
 log_reg = LogisticRegression()
 log_reg.fit(x_train, y_train)
@@ -58,6 +67,4 @@ confmatrix = metrics.confusion_matrix(y_test, predicted)
 print "\n", confmatrix
 
 print "accuracy score: ", metrics.accuracy_score(y_test, predicted)
-
-#plt.show()
 
