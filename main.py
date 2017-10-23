@@ -35,13 +35,13 @@ plt.subplot(2, 1, 2)
 dataset.light.hist()
 plt.xlabel("lux")
 plt.ylabel("frequency")
-
-plt.show()
 """
+
+#plt.show()
 
 dataset.drop(['date'], axis = 1, inplace = True)
 dataset.drop(['time'], axis = 1, inplace = True)
-dataset['hot'] = ((dataset.temp > 20) & (dataset.humid < 38) & (dataset.light > 400)).astype(int)
+dataset['hot'] = ((dataset.temp > 20) & (dataset.humid < 35) & (dataset.light > 400)).astype(int)
 #print dataset
 
 print "average group\n------------------\n"
@@ -53,7 +53,7 @@ y = np.ravel(y) # 1D array
 #x = dataset.ix[:, (0, 1, 2)].values
 #y = dataset.ix[:, 3].values
 
-x_train, x_test, y_train, y_test = train_test_split(x, y, train_size = 0.7, test_size = 0.3, random_state = 0)
+x_train, x_test, y_train, y_test = train_test_split(x, y, train_size = 0.6, test_size = 0.4, random_state = 0)
 
 log_reg = LogisticRegression()
 log_reg.fit(x_train, y_train)
@@ -66,5 +66,6 @@ prob = log_reg.predict_proba(x_test)
 confmatrix = metrics.confusion_matrix(y_test, predicted)
 print "\n", confmatrix
 
-print "accuracy score: ", metrics.accuracy_score(y_test, predicted)
+print "\naccuracy score:", metrics.accuracy_score(y_test, predicted)
+print log_reg.get_params(deep = True)
 
