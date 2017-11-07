@@ -100,3 +100,4 @@ if __name__ == "__main__":
 	print "mote coefficient vectors [b0, b1, b2, b3]\n"	
 	m = logitmodel()
 	m.run()
+
