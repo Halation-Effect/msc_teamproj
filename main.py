@@ -21,11 +21,11 @@ class logitmodel(threading.Thread):
 		for i in datasets:
 			t = threading.Thread(name = ("mote_" + str(i)), target = self.model, args = (i, ))
 			t.start()
-			#t.join()
+			t.join()
 
 	def model(self, ids):
-		s1 = 0
-		s2 = 10000
+		i = 0
+		s = 10000
 
 		local_mote_coefs = {}
 		mote_ids = []
@@ -59,10 +59,10 @@ class logitmodel(threading.Thread):
 	
 		for _ in xrange(2):
 			columns = ['date', 'time', 'temp', 'humid', 'lux']
-			mote_id = "mote_" + str(ids) + ".csv"
+			mote_id = "mote_" + str(ids)
 		
-			df = pd.read_csv(mote_id, header = 1)
-			dataset = df.iloc[s1:s2, :]
+			df = pd.read_csv("mote_data/" + mote_id + ".csv", header = 1)
+			dataset = df.iloc[:s, :]
 			dataset.columns = columns
 
 			dataset.drop(['date'], axis = 1, inplace = True)
@@ -90,14 +90,17 @@ class logitmodel(threading.Thread):
 			modelparams = model.get_params(deep = True)
 			modelcoefs = model.coef_
 
+			mote_id += "_" + str(i)
 			local_mote_coefs.update({mote_id : modelcoefs})	
 
-			logging.debug("%d - %d\t\t%s", s1, s2, modelcoefs)
-			s1 = s2
-			s2 += 1200
+			print mote_id, "\t", s, "\t\t", modelcoefs
+			#logging.debug("%d\t\t%s", s, modelcoefs)
+			s += 120
+			i += 1
+
+		return local_mote_coefs
 
 if __name__ == "__main__":
 	print "mote coefficient vectors [b0, b1, b2, b3]\n"	
 	m = logitmodel()
 	m.run()
-
