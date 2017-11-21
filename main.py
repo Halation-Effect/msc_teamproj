@@ -1,27 +1,32 @@
-import threading, Queue, logging, timeit
+import multiprocessing, logging
+
 import numpy as np
 import pandas as pd
 #import matplotlib.pyplot as plt
 
 from patsy import dmatrices
-from sklearn import metrics
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
 
-logging.basicConfig(level = logging.DEBUG, format = "(%(threadName)-1s) %(message)s")
+logging.basicConfig(level = logging.DEBUG, format = "(%(processName)-1s) %(message)s")
 #pd.set_option('display.max_rows', None, 'display.max_columns', None)
 pd.options.mode.chained_assignment = None
 
-class logitmodel(threading.Thread):
-	def __init__(self):
-		threading.Thread.__init__(self)
-	
-	def run(self):
-		datasets = [2, 9, 16, 27, 38, 47, 50]
-		for i in datasets:
-			t = threading.Thread(name = ("mote_" + str(i)), target = self.model, args = (i, ))
-			t.start()
-			t.join()
+class sensor(multiprocessing.Process):
+	def __init__(self, q):
+		multiprocessing.Process.__init__(self)
+		self.datasets = [2, 9, 16, 27, 38, 47, 50]		
+		self.q = q
+
+	def run(self):		
+		"""
+		with multiprocessing.Pool(processes = 5):
+			sensors = pool.map(self.model, i, 3)
+		"""
+		for i in self.datasets:
+			p = multiprocessing.Process(name = ("mote_" + str(i)), target = self.model, args = (i, ))
+			p.start()
+			#p.join()
 
 	def model(self, ids):
 		i = 0
@@ -57,7 +62,7 @@ class logitmodel(threading.Thread):
 
 		#plt.show()
 	
-		for _ in xrange(2):
+		for _ in xrange(1):
 			columns = ['date', 'time', 'temp', 'humid', 'lux']
 			mote_id = "mote_" + str(ids)
 		
@@ -92,15 +97,30 @@ class logitmodel(threading.Thread):
 
 			mote_id += "_" + str(i)
 			local_mote_coefs.update({mote_id : modelcoefs})	
-
-			print mote_id, "\t", s, "\t\t", modelcoefs
-			#logging.debug("%d\t\t%s", s, modelcoefs)
+			self.q.put(local_mote_coefs)
+			
+			logging.debug("%d\t\t%s", s, modelcoefs)
 			s += 120
 			i += 1
 
-		return local_mote_coefs
+class sink(multiprocessing.Process):
+	def __init__(self, q):
+		self.q = q
 
+	def classifier(self):
+		while 1:
+			coefs = self.q.get()
+			print coefs
+ 
 if __name__ == "__main__":
 	print "mote coefficient vectors [b0, b1, b2, b3]\n"	
-	m = logitmodel()
-	m.run()
+
+	q = multiprocessing.Queue()
+
+	ss = sink(q)
+	p = multiprocessing.Process(name = "sink", target = ss.classifier)
+	p.start()
+
+	s = sensor(q)
+	s.run()
+
